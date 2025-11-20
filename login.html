@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Banco de Sangre UNACH</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script> <!-- Script de reCAPTCHA -->
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url("images/fondorojo.png") no-repeat center center fixed;
+      background-size: cover;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .flip-container {
+      perspective: 1500px;
+      width: 100%;
+      max-width: 420px;
+      height: 650px; /* Aumenté la altura para acomodar reCAPTCHA */
+      margin: 0 auto;
+    }
+
+    .flipper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .flipped .flipper {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      backface-visibility: hidden;
+      background: rgba(80, 0, 0, 0.85);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      color: #fff;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); /* Fallback Safari */
+    }
+
+    .back {
+      transform: rotateY(180deg);
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .logo-container img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: white;
+      padding: 10px;
+      box-shadow: 0 5px 20px rgba(255, 0, 0, 0.5);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ffb3b3;
+      text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+      font-size: 1.8rem;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #ffe4ec;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus {
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    select option {
+      background: #500000;
+      color: white;
+    }
+
+    .recaptcha-container {
+      margin-bottom: 15px;
+      text-align: right; /* Cambié a right para mover a la derecha */
+      margin-left: 20px; /* Agregué margen izquierdo para que no esté pegado al borde */
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      background: linear-gradient(135deg, #b30000, #ff3333);
+      transition: all 0.3s;
+      margin-top: 5px;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #ff3333, #ff6666);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4);
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 12px;
+      color: #ffd6d6;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-decoration: underline;
+      transition: all 0.3s;
+    }
+
+    .link:hover, .link:focus {
+      color: #fff;
+    }
+
+    .error-message, .success-message {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 0.9rem;
+      display: none;
+      position: relative;
+    }
+
+    .error-message {
+      background: rgba(255, 0, 0, 0.3);
+      color: white;
+      border: 1px solid rgba(255, 0, 0, 0.5);
+    }
+
+    .success-message {
+      background: rgba(0, 255, 0, 0.3);
+      color: white;
+      border: 1px solid rgba(0, 255, 0, 0.5);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="flip-container" id="flip-container">
+    <div class="flipper">
+      <!-- INICIO DE SESIÓN -->
+      <div class="card-face front">
+        <div class="logo-container">
+          <img src="images/logoimagen.png" alt="Logo del Banco de Sangre UNACH" onerror="this.style.display='none'">
+        </div>
+        <h2>Banco de Sangre UNACH</h2>
+        
+        <div class="error-message" id="login-error" role="alert" aria-live="assertive">
+          <span id="login-error-text"></span>
+          <button class="close-btn" onclick="cerrarMensaje('login-error')">×</button>
+        </div>
+        
+        <form id="loginForm">
+          <div class="input-group">
+            <label for="login-usuario">Usuario:</label>
+            <input type="text" id="login-usuario" placeholder="Ingresa tu usuario" required aria-describedby="login-error">
+          </div>
+
+          <div class="input-group">
+            <label for="login-password">Contraseña:</label>
+            <input type="password" id="login-password" placeholder="Ingresa tu contraseña" required aria-describedby="login-error">
+          </div>
+
+          <div class="input-group">
+            <label for="login-municipio">Municipio (solo Chiapas):</label>
+            <select id="login-municipio" required aria-describedby="login-error">
+              <option value="">Selecciona tu municipio</option>
+              <option>Chiapa de Corzo</option>
+              <option>Tuxtla Gutiérrez</option>
+              <option>San Cristóbal de las Casas</option>
+            </select>
+          </div>
+
+          <!-- reCAPTCHA aquí, entre municipio y botón -->
+          <div class="recaptcha-container">
+            <div class="g-recaptcha" data-sitekey="6LfvW_orAAAAACAjzHXY3OeZzdmZ1WZwih1ozLbJ"></div>
+          </div>
+
+          <button type="submit" class="btn">Iniciar Sesión</button>
+          <div class="link" id="to-register" tabindex="0">¿No tienes cuenta? Regístrate</div>
+        </form>
+      </div>
+
+      <!-- REGISTRO (sin reCAPTCHA por ahora, pero puedes agregarlo igual) -->
+      <div class="card-face back">
+        <div class="logo-container">
+          <img src="images/logoimagen.png" alt="Logo del Banco de Sangre UNACH" onerror="this.style.display='none'">
+        </div>
+        <h2>Registro</h2>
+        
+        <div class="success-message" id="register-success" role="alert" aria-live="polite">
+          <span id="register-success-text"></span>
+          <button class="close-btn" onclick="cerrarMensaje('register-success')">×</button>
+        </div>
+        <div class="error-message" id="register-error" role="alert" aria-live="assertive">
+          <span id="register-error-text"></span>
+          <button class="close-btn" onclick="cerrarMensaje('register-error')">×</button>
+        </div>
+        
+        <form id="registerForm">
+          <div class="input-group">
+            <label for="register-nombre">Nombre Completo:</label>
+            <input type="text" id="register-nombre" placeholder="Ingresa tu nombre completo" required aria-describedby="register-error">
+          </div>
+
+          <div class="input-group">
+            <label for="register-usuario">Usuario:</label>
+            <input type="text" id="register-usuario" placeholder="Crea un usuario (4-20 chars, letras/números)" required minlength="4" maxlength="20" pattern="[a-zA-Z0-9]+" aria-describedby="register-error">
+          </div>
+
+          <div class="input-group">
+            <label for="register-password">Contraseña:</label>
+            <input type="password" id="register-password" placeholder="Crea una contraseña (mín 6 chars, incluye mayúscula/número)" required minlength="6" pattern="(?=.*[A-Z])(?=.*\d).*" aria-describedby="register-error">
+          </div>
+
+          <div class="input-group">
+            <label for="register-municipio">Municipio (solo Chiapas):</label>
+            <select id="register-municipio" required aria-describedby="register-error">
+              <option value="">Selecciona tu municipio</option>
+              <option>Chiapa de Corzo</option>
+              <option>Tuxtla Gutiérrez</option>
+              <option>San Cristóbal de las Casas</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn">Registrarse</button>
+          <div class="link" id="to-login" tabindex="0">¿Ya tienes cuenta? Inicia sesión</div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const flipContainer = document.getElementById('flip-container');
+
+    // Función para hashear contraseña (SHA-256)
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Función para sanitizar inputs (remueve caracteres peligrosos)
+    function sanitizeInput(input) {
+      return input.replace(/[<>\"']/g, '').trim();
+    }
+
+    // Función para cerrar mensajes
+    function cerrarMensaje(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Función para mostrar mensajes
+    function mostrarMensaje(elementId, mensaje, tipo = 'error') {
+      const element = document.getElementById(elementId);
+      const textElement = document.getElementById(elementId + '-text');
+      textElement.textContent = mensaje;
+      element.style.display = 'block';
+      // Auto-cerrar después de 5s si no es éxito
+      if (tipo !== 'success') {
+        setTimeout(() => element.style.display = 'none', 5000);
+      }
+    }
+
+    // Botones para flip
+    document.getElementById('to-register').onclick = () => flipContainer.classList.add('flipped');
+    document.getElementById('to-login').onclick = () => {
+      flipContainer.classList.remove('flipped');
+      cerrarMensaje('register-success');
+      cerrarMensaje('register-error');
+    };
+
+    // Manejo del registro
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const nombre = sanitizeInput(document.getElementById('register-nombre').value);
+      const usuario = sanitizeInput(document.getElementById('register-usuario').value);
+      const password = document.getElementById('register-password').value;
+      const municipio = document.getElementById('register-municipio').value;
+
+      // Validaciones
+      if (!/^[a-zA-Z0-9]{4,20}$/.test(usuario)) {
+        mostrarMensaje('register-error', 'Usuario: Solo letras/números, 4-20 caracteres.');
+        return;
+      }
+      if (!/(?=.*[A-Z])(?=.*\d).{6,}/.test(password)) {
+        mostrarMensaje('register-error', 'Contraseña: Mín 6 chars, incluye mayúscula y número.');
+        return;
+      }
+
+      const hashedPassword = await hashPassword(password);
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      
+      if (usuarios.find(u => u.usuario === usuario)) {
+        mostrarMensaje('register-error', 'Este usuario ya está registrado.');
+        return;
+      }
+
+      usuarios.push({
+        nombre,
+        usuario,
+        password: hashedPassword,
+        municipio,
+        fechaRegistro: new Date().toISOString()
+      });
+
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      mostrarMensaje('register-success', '¡Registro exitoso! Redirigiendo al login...', 'success');
+      document.getElementById('registerForm').reset();
+
+      setTimeout(() => {
+        flipContainer.classList.remove('flipped');
+        cerrarMensaje('register-success');
+      }, 2000);
+    });
+
+    // Manejo del login (con verificación de reCAPTCHA)
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Verificar reCAPTCHA (simulación frontend - en producción, envía a backend)
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        mostrarMensaje('login-error', 'Por favor, completa el reCAPTCHA.');
+        return;
+      }
+
+      // Aquí, en producción, enviarías recaptchaResponse a tu servidor para verificar con la clave secreta.
+      // Ejemplo: fetch('/verify-recaptcha', { method: 'POST', body: JSON.stringify({ response: recaptchaResponse }) })
+      // Por ahora, simulamos que está bien (pero no lo está realmente).
+
+      const usuario = sanitizeInput(document.getElementById('login-usuario').value);
+      const password = document.getElementById('login-password').value;
+      const municipio = document.getElementById('login-municipio').value;
+
+      const hashedPassword = await hashPassword(password);
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      
+      const usuarioEncontrado = usuarios.find(u => 
+        u.usuario === usuario && 
+        u.password === hashedPassword && 
+        u.municipio === municipio
+      );
+
+      if (usuarioEncontrado) {
+        localStorage.setItem('usuarioActual', JSON.stringify(usuarioEncontrado));
+        alert('¡Inicio de sesión exitoso! Bienvenido ' + usuarioEncontrado.nombre);
+        window.location.href = 'index.html'; // Cambia a tu dashboard
+      } else {
+        mostrarMensaje('login-error', 'Usuario, contraseña o municipio incorrectos.');
+      }
+
+      // Reset reCAPTCHA después del intento
+      grecaptcha.reset();
+    });
+  </script>
+</body>
+</html>
