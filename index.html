@@ -1,0 +1,2124 @@
+ }<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Sangre UNACH - Sistema de Registro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            padding: 1.2rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-menu a:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #ffd700;
+            transition: width 0.3s;
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #c0392b;
+            padding: 0.7rem 2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.6);
+        }
+
+        .hero {
+            position: relative;
+            height: 700px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-bg video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.4) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 2rem;
+            animation: fadeInUp 1s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-hero:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-hero:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .blood-types {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .blood-types h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            color: #e74c3c;
+            animation: slideInLeft 1s;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .blood-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .blood-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 10px 30px rgba(238, 90, 111, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blood-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transition: all 0.5s;
+        }
+
+        .blood-card:hover::before {
+            top: -60%;
+            left: -60%;
+        }
+
+        .blood-card:hover {
+            transform: translateY(-20px) scale(1.1);
+            box-shadow: 0 20px 50px rgba(238, 90, 111, 0.6);
+            z-index: 10;
+        }
+
+        .blood-type {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .blood-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            height: 40px;
+        }
+
+        .blood-info {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .blood-card:hover .blood-info {
+            max-height: 300px;
+        }
+
+        .blood-info p {
+            font-size: 0.85rem;
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+
+        .services {
+            padding: 5rem 2rem;
+            background: url('imagen2.png') center/cover no-repeat;
+            position: relative;
+        }
+
+        .services::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+        }
+
+        .services-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .services h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.4s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        .service-card:hover {
+            transform: translateY(-15px) rotateY(5deg);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s;
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .service-card h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .service-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .service-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s;
+            margin-top: 1rem;
+        }
+
+        .service-card:hover .service-details {
+            max-height: 200px;
+        }
+
+        .info-section {
+            padding: 6rem 2rem;
+            background: url('imagen2.png') center/cover no-repeat fixed;
+            position: relative;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+        }
+
+        .info-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            color: white;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s;
+        }
+
+        .info-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .info-content h2 {
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            padding: 2.5rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+
+        .info-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .info-card h3 {
+            margin-bottom: 1.5rem;
+            color: #ffd700;
+            font-size: 1.8rem;
+        }
+
+        .info-card p {
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .inventory {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .inventory h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: #e74c3c;
+        }
+
+        .leaflet-top,
+        .leaflet-bottom {
+            z-index: 500 !important;
+        }
+
+        .leaflet-control {
+            z-index: 500 !important;
+        }
+
+        .contact {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .contact-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .contact h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+
+        .contact-form {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            display: grid;
+            gap: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.7rem;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer h3 {
+            margin-bottom: 1.5rem;
+            color: #ffd700;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.7rem;
+            transition: all 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ffd700;
+            transform: translateX(5px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            overflow-y: auto;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            padding: 2.5rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideDown 0.5s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+            transform: rotate(90deg);
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .form-section h3 {
+            color: #e74c3c;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 3px solid #e74c3c;
+            font-size: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .blood-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo-section">
+                <div class="logo-img">
+                    <img src="logoimagen.png" alt="Logo Banco de Sangre">
+                </div>
+                <div class="logo">
+                    Banco de Sangre UNACH
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#ubicaciones">Ubicaciones</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <a href="login.html" class="btn-login">cerrar sesion</a>
+        </nav>
+    </header>
+
+    <section class="hero" id="inicio">
+        <div class="hero-bg">
+            <video autoplay muted loop playsinline>
+                <source src="video1.mp4" type="video/mp4">
+                <source src="video1.webm" type="video/webm">
+                Tu navegador no soporta videos HTML5.
+            </video>
+        </div>
+        <div class="hero-content">
+            <h1>DONANDO VIDA</h1>
+            <p>Tu donación puede salvar hasta 3 vidas. Únete a nuestra comunidad de donadores.</p>
+            <div class="hero-buttons">
+                <button class="btn-hero btn-primary" onclick="openModal('donador')">Registrarse como Donador</button>
+                <button class="btn-hero btn-secondary" onclick="openModal('receptor')">Solicitar Donación</button>
+            </div>
+            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+                <button class="btn-hero" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);" onclick="openModal('consulta')">Consulta Médica</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="blood-types">
+        <h2>Compatibilidad de Tipos Sanguíneos</h2>
+        <div class="blood-grid">
+            <div class="blood-card">
+                <div class="blood-type">O-</div>
+                <div class="blood-label">Donante Universal</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> Todos los tipos</p>
+                    <p><strong>Puede recibir de:</strong> Solo O-</p>
+                    <p><strong>Rareza:</strong> 7% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">O+</div>
+                <div class="blood-label">Más Común</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> A+, B+, AB+, O+</p>
+                    <p><strong>Puede recibir de:</strong> O+, O-</p>
+                    <p><strong>Rareza:</strong> 38% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">A-</div>
+                <div class="blood-label">Donante A-, AB-</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> A+, A-, AB+, AB-</p>
+                    <p><strong>Puede recibir de:</strong> A-, O-</p>
+                    <p><strong>Rareza:</strong> 6% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">A+</div>
+                <div class="blood-label">Donante A+, AB+</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> A+, AB+</p>
+                    <p><strong>Puede recibir de:</strong> A+, A-, O+, O-</p>
+                    <p><strong>Rareza:</strong> 34% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">B-</div>
+                <div class="blood-label">Donante B-, AB-</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> B+, B-, AB+, AB-</p>
+                    <p><strong>Puede recibir de:</strong> B-, O-</p>
+                    <p><strong>Rareza:</strong> 2% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">B+</div>
+                <div class="blood-label">Donante B+, AB+</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> B+, AB+</p>
+                    <p><strong>Puede recibir de:</strong> B+, B-, O+, O-</p>
+                    <p><strong>Rareza:</strong> 9% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">AB-</div>
+                <div class="blood-label">Donante AB-</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> AB+, AB-</p>
+                    <p><strong>Puede recibir de:</strong> A-, B-, AB-, O-</p>
+                    <p><strong>Rareza:</strong> 1% de la población</p>
+                </div>
+            </div>
+
+            <div class="blood-card">
+                <div class="blood-type">AB+</div>
+                <div class="blood-label">Receptor Universal</div>
+                <div class="blood-info">
+                    <p><strong>Puede donar a:</strong> Solo AB+</p>
+                    <p><strong>Puede recibir de:</strong> Todos los tipos</p>
+                    <p><strong>Rareza:</strong> 3% de la población</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services" id="servicios">
+        <div class="services-container">
+            <h2>Nuestros Servicios</h2>
+            <div class="services-grid">
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">💉</div>
+                    <h3>Donación de Sangre</h3>
+                    <p>Proceso seguro y rápido. Cada donación puede salvar múltiples vidas.</p>
+                    <div class="service-details">
+                        <p><strong>Duración:</strong> 30-45 minutos</p>
+                        <p><strong>Frecuencia:</strong> Cada 2 meses</p>
+                    </div>
+                </div>
+
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">🔬</div>
+                    <h3>Análisis de Sangre</h3>
+                    <p>Pruebas completas y resultados confiables para garantizar la seguridad.</p>
+                    <div class="service-details">
+                        <p><strong>Incluye:</strong> VIH, Hepatitis, Sífilis</p>
+                        <p><strong>Resultados:</strong> 24-48 horas</p>
+                    </div>
+                </div>
+
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">📋</div>
+                    <h3>Seguimiento Digital</h3>
+                    <p>Sistema de trazabilidad completo para donadores y receptores.</p>
+                    <div class="service-details">
+                        <p><strong>Portal web:</strong> Consulta tu historial</p>
+                        <p><strong>Notificaciones:</strong> SMS y email</p>
+                    </div>
+                </div>
+
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">🏥</div>
+                    <h3>Banco Disponible 24/7</h3>
+                    <p>Disponibilidad inmediata para emergencias médicas.</p>
+                    <div class="service-details">
+                        <p><strong>Atención:</strong> Las 24 horas</p>
+                        <p><strong>Urgencias:</strong> Respuesta inmediata</p>
+                    </div>
+                </div>
+
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">🚑</div>
+                    <h3>Transporte Especializado</h3>
+                    <p>Traslado seguro de sangre y hemoderivados a hospitales.</p>
+                    <div class="service-details">
+                        <p><strong>Cobertura:</strong> Todo el estado</p>
+                        <p><strong>Tiempo:</strong> Máximo 2 horas</p>
+                    </div>
+                </div>
+
+                <div class="service-card animate-on-scroll">
+                    <div class="service-icon">👨‍⚕️</div>
+                    <h3>Personal Capacitado</h3>
+                    <p>Equipo médico certificado y con amplia experiencia.</p>
+                    <div class="service-details">
+                        <p><strong>Certificaciones:</strong> NOM vigentes</p>
+                        <p><strong>Experiencia:</strong> +10 años</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="info-section" id="informacion">
+        <div class="info-overlay"></div>
+        <div class="info-content">
+            <h2>¿Por qué donar sangre? / ¿Cómo solicitar?</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>✓ Seguro</h3>
+                    <p>Proceso completamente seguro con material esterilizado y desechable. Personal capacitado te guiará en cada paso.</p>
+                </div>
+                <div class="info-card">
+                    <h3>✓ Rápido</h3>
+                    <p>El proceso completo toma aproximadamente 30-45 minutos. Registro rápido y sin complicaciones.</p>
+                </div>
+                <div class="info-card">
+                    <h3>✓ Necesario</h3>
+                    <p>Cada 2 segundos alguien necesita sangre en México. Tu donación puede salvar hasta 3 vidas.</p>
+                </div>
+                <div class="info-card">
+                    <h3>✓ Beneficioso</h3>
+                    <p>Beneficios para tu salud y la de quienes lo necesitan. Recibes análisis de sangre gratuitos.</p>
+                </div>
+                <div class="info-card">
+                    <h3>📋 Solicitar Donación</h3>
+                    <p>Si necesitas sangre, completa el formulario de receptor. Procesamos tu solicitud en 24-48 horas y te contactamos.</p>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Reconocimiento</h3>
+                    <p>Credencial de donador voluntario y prioridad en caso de que tú o tu familia necesiten sangre en el futuro.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="inventory" id="ubicaciones">
+        <h2>Hospitales y Bancos de Sangre</h2>
+        <p style="text-align: center; margin-bottom: 2rem; font-size: 1.1rem; color: #666;">
+            Encuentra hospitales y bancos de sangre en tu municipio
+        </p>
+        <div id="map" style="width: 100%; height: 600px; max-width: 1200px; margin: 0 auto; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);"></div>
+    </section>
+
+    <section class="contact" id="contacto">
+        <div class="contact-container">
+            <h2>Contáctanos</h2>
+            <form class="contact-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Asunto</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Mensaje *</label>
+                    <textarea rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Enviar</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h3>BANCO DE SANGRE UNACH</h3>
+                <p>Comprometidos con salvar vidas a través de la donación voluntaria.</p>
+            </div>
+            <div>
+                <h3>MENÚ</h3>
+                <ul class="footer-links">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#servicios">Servicios</a></li>
+                    <li><a href="#informacion">Información</a></li>
+                    <li><a href="#ubicaciones">Ubicaciones</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>CONTACTO</h3>
+                <p>Av. Fray A. Alcalde 10<br>
+                44100 Guadalajara, Jal., México<br>
+                Tel: +52-1-33-12345678<br>
+                Mail: info@bancosangre.com</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DONADOR -->
+    <div id="modalDonador" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('donador')">&times;</span>
+            <h2 style="color: #e74c3c; margin-bottom: 2rem;">Registro de Donador</h2>
+            <form id="formDonador" onsubmit="submitDonador(event)">
+                <div class="form-section">
+                    <h3>Datos Personales</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre(s) *</label>
+                            <input type="text" id="d_nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Paterno *</label>
+                            <input type="text" id="d_apellidop" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Materno</label>
+                            <input type="text" id="d_apellidom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CURP *</label>
+                            <input type="text" id="d_curp" pattern="[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9]{2}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Nacimiento *</label>
+                            <input type="date" id="d_fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sexo *</label>
+                            <select id="d_sexo" required>
+                                <option value="">Seleccione</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Información de Contacto</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="d_telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="d_email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección Completa *</label>
+                        <input type="text" id="d_direccion" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Municipio *</label>
+                            <input type="text" id="d_municipio" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado *</label>
+                            <input type="text" id="d_estado" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Información Médica</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Sangre *</label>
+                            <select id="d_tiposangre" required>
+                                <option value="">Seleccione</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Peso (kg) *</label>
+                            <input type="number" id="d_peso" min="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Altura (cm) *</label>
+                            <input type="number" id="d_altura" min="100" max="250" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Turno Preferido *</label>
+                            <select id="d_turno" required>
+                                <option value="">Seleccione</option>
+                                <option value="Matutino">Matutino (8:00 AM - 12:00 PM)</option>
+                                <option value="Vespertino">Vespertino (12:00 PM - 4:00 PM)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Alergias / Condiciones Médicas</label>
+                        <textarea id="d_condiciones" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Consentimiento</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="d_consentimiento" required>
+                        <label for="d_consentimiento">Acepto el tratamiento de mis datos personales y de salud conforme a la Ley de Protección de Datos Personales y autorizo la donación voluntaria. *</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="d_politica" required>
+                        <label for="d_politica">He leído y acepto la Política de Privacidad. *</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 2rem;">Registrar y Generar Cita</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL RECEPTOR -->
+    <div id="modalReceptor" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('receptor')">&times;</span>
+            <h2 style="color: #e74c3c; margin-bottom: 2rem;">Registro de Receptor (Paciente)</h2>
+            <form id="formReceptor" onsubmit="submitReceptor(event)">
+                <div class="form-section">
+                    <h3>Datos Personales</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre(s) *</label>
+                            <input type="text" id="r_nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Paterno *</label>
+                            <input type="text" id="r_apellidop" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Materno</label>
+                            <input type="text" id="r_apellidom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CURP / NSS *</label>
+                            <input type="text" id="r_curp" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Nacimiento *</label>
+                            <input type="date" id="r_fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sexo *</label>
+                            <select id="r_sexo" required>
+                                <option value="">Seleccione</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Información de Contacto</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="r_telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="r_email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contacto de Emergencia (Nombre y Teléfono) *</label>
+                        <input type="text" id="r_emergencia" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección Completa *</label>
+                        <input type="text" id="r_direccion" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Información Médica</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Sangre Requerido *</label>
+                            <select id="r_tiposangre" required>
+                                <option value="">Seleccione</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Unidades Requeridas *</label>
+                            <input type="number" id="r_unidades" min="1" max="10" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Diagnóstico / Motivo de la Solicitud *</label>
+                        <textarea id="r_diagnostico" rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Médico Responsable</label>
+                            <input type="text" id="r_medico">
+                        </div>
+                        <div class="form-group">
+                            <label>Hospital / Clínica *</label>
+                            <input type="text" id="r_hospital" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Consentimiento</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="r_consentimiento" required>
+                        <label for="r_consentimiento">Acepto el tratamiento de mis datos personales y de salud conforme a la Ley de Protección de Datos Personales y autorizo el procesamiento de esta solicitud. *</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="r_politica" required>
+                        <label for="r_politica">He leído y acepto la Política de Privacidad. *</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 2rem;">Registrar y Generar Documento</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONSULTA MÉDICA -->
+    <div id="modalConsulta" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('consulta')">&times;</span>
+            <h2 style="color: #4CAF50; margin-bottom: 2rem;">Consulta Médica Pre-Donación</h2>
+            <form id="formConsulta" onsubmit="submitConsulta(event)">
+                <div class="form-section">
+                    <h3 style="color: #4CAF50; border-bottom-color: #4CAF50;">Datos Personales</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre(s) *</label>
+                            <input type="text" id="c_nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Paterno *</label>
+                            <input type="text" id="c_apellidop" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido Materno</label>
+                            <input type="text" id="c_apellidom">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>CURP *</label>
+                            <input type="text" id="c_curp" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Nacimiento *</label>
+                            <input type="date" id="c_fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sexo *</label>
+                            <select id="c_sexo" required>
+                                <option value="">Seleccione</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 style="color: #4CAF50; border-bottom-color: #4CAF50;">Información de Contacto</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="c_telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="c_email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección Completa *</label>
+                        <input type="text" id="c_direccion" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Municipio *</label>
+                            <input type="text" id="c_municipio" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado *</label>
+                            <input type="text" id="c_estado" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 style="color: #4CAF50; border-bottom-color: #4CAF50;">Información Médica Básica</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Peso Aproximado (kg) *</label>
+                            <input type="number" id="c_peso" min="40" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Altura Aproximada (cm) *</label>
+                            <input type="number" id="c_altura" min="100" max="250" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Ha donado sangre anteriormente?</label>
+                        <select id="c_donado" required>
+                            <option value="">Seleccione</option>
+                            <option value="Si">Sí</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Enfermedades Crónicas / Alergias</label>
+                        <textarea id="c_enfermedades" rows="3" placeholder="Diabetes, hipertensión, alergias a medicamentos, etc."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Medicamentos que toma actualmente</label>
+                        <textarea id="c_medicamentos" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 style="color: #4CAF50; border-bottom-color: #4CAF50;">Preferencia de Horario</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Turno Preferido *</label>
+                            <select id="c_turno" required>
+                                <option value="">Seleccione</option>
+                                <option value="Matutino">Matutino (8:00 AM - 12:00 PM)</option>
+                                <option value="Vespertino">Vespertino (12:00 PM - 4:00 PM)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Día Preferido *</label>
+                            <select id="c_dia" required>
+                                <option value="">Seleccione</option>
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comentarios Adicionales</label>
+                        <textarea id="c_comentarios" rows="2" placeholder="Horario específico, necesidades especiales, etc."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 style="color: #4CAF50; border-bottom-color: #4CAF50;">Consentimiento</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="c_consentimiento" required>
+                        <label for="c_consentimiento">Acepto el tratamiento de mis datos personales y de salud conforme a la Ley de Protección de Datos Personales y autorizo la valoración médica. *</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="c_politica" required>
+                        <label for="c_politica">He leído y acepto la Política de Privacidad. *</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);">Agendar Consulta Médica</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let logoBase64 = null;
+
+        // Verificar sesión y obtener municipio del usuario
+        window.addEventListener('load', function() {
+            const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual') || 'null');
+            
+            if (!usuarioActual) {
+                alert('Debes iniciar sesión primero');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Cargar logo
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                logoBase64 = canvas.toDataURL('image/png');
+            };
+            img.onerror = function() {
+                console.log('No se pudo cargar logoimagen.png');
+            };
+            img.src = 'logoimagen.png';
+
+            // Inicializar mapa con el municipio del usuario
+            initMapLeaflet(usuarioActual.municipio);
+        });
+
+        // Datos de hospitales por municipio
+        const hospitalesPorMunicipio = {
+            'Chiapa de Corzo': {
+                center: [16.7056, -93.0092],
+                zoom: 13,
+                hospitales: [
+                    { nombre: 'Centro de Salud Chiapa de Corzo', lat: 16.7056, lng: -93.0092, tipo: 'Centro de Salud' },
+                    { nombre: 'Hospital Básico Chiapa', lat: 16.7089, lng: -93.0045, tipo: 'Hospital Básico' },
+                    { nombre: 'Banco de Sangre Chiapa de Corzo', lat: 16.7023, lng: -93.0120, tipo: 'Banco de Sangre' }
+                ]
+            },
+            'Tuxtla Gutiérrez': {
+                center: [16.7516, -93.1029],
+                zoom: 13,
+                hospitales: [
+                    { nombre: 'Hospital General Dr. Rafael Pascacio', lat: 16.7587, lng: -93.0890, tipo: 'Hospital General' },
+                    { nombre: 'Hospital Regional Alta Especialidad', lat: 16.7823, lng: -93.1145, tipo: 'Hospital Regional' },
+                    { nombre: 'Cruz Roja Tuxtla', lat: 16.7612, lng: -93.1156, tipo: 'Cruz Roja' },
+                    { nombre: 'Banco de Sangre UNACH', lat: 16.7495, lng: -93.1150, tipo: 'Banco de Sangre' }
+                ]
+            },
+            'San Cristóbal de las Casas': {
+                center: [16.7370, -92.6376],
+                zoom: 13,
+                hospitales: [
+                    { nombre: 'Hospital de las Culturas', lat: 16.7370, lng: -92.6376, tipo: 'Hospital Regional' },
+                    { nombre: 'Cruz Roja San Cristóbal', lat: 16.7412, lng: -92.6423, tipo: 'Cruz Roja' },
+                    { nombre: 'Hospital General San Cristóbal', lat: 16.7298, lng: -92.6401, tipo: 'Hospital General' },
+                    { nombre: 'Banco de Sangre San Cristóbal', lat: 16.7345, lng: -92.6350, tipo: 'Banco de Sangre' }
+                ]
+            }
+        };
+
+        function initMapLeaflet(municipio) {
+            const datosMunicipio = hospitalesPorMunicipio[municipio];
+            
+            if (!datosMunicipio) {
+                console.error('Municipio no encontrado en la base de datos');
+                return;
+            }
+
+            const map = L.map('map').setView(datosMunicipio.center, datosMunicipio.zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+            
+            const hospitalIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+            
+            datosMunicipio.hospitales.forEach((hospital) => {
+                const marker = L.marker([hospital.lat, hospital.lng], { icon: hospitalIcon }).addTo(map);
+                marker.bindPopup('<div><h3 style="color: #e74c3c; margin: 0 0 10px 0;">' + hospital.nombre + '</h3><p><strong>Tipo:</strong> ' + hospital.tipo + '</p></div>');
+                marker.bindTooltip(hospital.nombre, { permanent: false, direction: 'top' });
+            });
+        }
+
+        // Animaciones y observers
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        const infoContent = document.querySelector('.info-content');
+        const infoObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        if (infoContent) {
+            infoObserver.observe(infoContent);
+        }
+
+        function openModal(type) {
+            if (type === 'donador') {
+                document.getElementById('modalDonador').style.display = 'block';
+            } else if (type === 'receptor') {
+                document.getElementById('modalReceptor').style.display = 'block';
+            } else if (type === 'consulta') {
+                document.getElementById('modalConsulta').style.display = 'block';
+            }
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(type) {
+            if (type === 'donador') {
+                document.getElementById('modalDonador').style.display = 'none';
+            } else if (type === 'receptor') {
+                document.getElementById('modalReceptor').style.display = 'none';
+            } else if (type === 'consulta') {
+                document.getElementById('modalConsulta').style.display = 'none';
+            }
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function calcularEdad(fechaNacimiento) {
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNacimiento);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad--;
+            }
+            return edad;
+        }
+
+        function generarFechaCita() {
+            const hoy = new Date();
+            hoy.setDate(hoy.getDate() + 7);
+            return hoy;
+        }
+
+        function dibujarPlaceholderLogo(doc) {
+            doc.setFillColor(231, 76, 60);
+            doc.circle(30, 25, 15, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(255, 255, 255);
+            doc.text('LOGO', 30, 27, { align: 'center' });
+        }
+
+        async function submitDonador(event) {
+            event.preventDefault();
+            
+            const datos = {
+                nombre: document.getElementById('d_nombre').value,
+                apellidoP: document.getElementById('d_apellidop').value,
+                apellidoM: document.getElementById('d_apellidom').value,
+                curp: document.getElementById('d_curp').value,
+                fechaNacimiento: document.getElementById('d_fecha').value,
+                sexo: document.getElementById('d_sexo').value,
+                telefono: document.getElementById('d_telefono').value,
+                email: document.getElementById('d_email').value,
+                direccion: document.getElementById('d_direccion').value,
+                municipio: document.getElementById('d_municipio').value,
+                estado: document.getElementById('d_estado').value,
+                tipoSangre: document.getElementById('d_tiposangre').value,
+                peso: document.getElementById('d_peso').value,
+                altura: document.getElementById('d_altura').value,
+                turno: document.getElementById('d_turno').value,
+                condiciones: document.getElementById('d_condiciones').value
+            };
+
+            const edad = calcularEdad(datos.fechaNacimiento);
+            if (edad < 18) {
+                alert('Debes ser mayor de 18 años para donar sangre.');
+                return;
+            }
+
+            if (parseFloat(datos.peso) < 50) {
+                alert('El peso mínimo para donar sangre es de 50 kg.');
+                return;
+            }
+
+            const fechaCita = generarFechaCita();
+            generarPDFDonador(datos, fechaCita);
+            
+            alert('¡Registro exitoso! Tu cita ha sido generada.');
+            document.getElementById('formDonador').reset();
+            closeModal('donador');
+        }
+
+        async function submitReceptor(event) {
+            event.preventDefault();
+            
+            const datos = {
+                nombre: document.getElementById('r_nombre').value,
+                apellidoP: document.getElementById('r_apellidop').value,
+                apellidoM: document.getElementById('r_apellidom').value,
+                curp: document.getElementById('r_curp').value,
+                fechaNacimiento: document.getElementById('r_fecha').value,
+                sexo: document.getElementById('r_sexo').value,
+                telefono: document.getElementById('r_telefono').value,
+                email: document.getElementById('r_email').value,
+                emergencia: document.getElementById('r_emergencia').value,
+                direccion: document.getElementById('r_direccion').value,
+                tipoSangre: document.getElementById('r_tiposangre').value,
+                unidades: document.getElementById('r_unidades').value,
+                diagnostico: document.getElementById('r_diagnostico').value,
+                medico: document.getElementById('r_medico').value,
+                hospital: document.getElementById('r_hospital').value
+            };
+
+            const fechaCita = generarFechaCita();
+            generarPDFReceptor(datos, fechaCita);
+            
+            alert('¡Registro exitoso! Tu solicitud ha sido procesada.');
+            document.getElementById('formReceptor').reset();
+            closeModal('receptor');
+        }
+
+        async function submitConsulta(event) {
+            event.preventDefault();
+            
+            const datos = {
+                nombre: document.getElementById('c_nombre').value,
+                apellidoP: document.getElementById('c_apellidop').value,
+                apellidoM: document.getElementById('c_apellidom').value,
+                curp: document.getElementById('c_curp').value,
+                fechaNacimiento: document.getElementById('c_fecha').value,
+                sexo: document.getElementById('c_sexo').value,
+                telefono: document.getElementById('c_telefono').value,
+                email: document.getElementById('c_email').value,
+                direccion: document.getElementById('c_direccion').value,
+                municipio: document.getElementById('c_municipio').value,
+                estado: document.getElementById('c_estado').value,
+                peso: document.getElementById('c_peso').value,
+                altura: document.getElementById('c_altura').value,
+                donado: document.getElementById('c_donado').value,
+                enfermedades: document.getElementById('c_enfermedades').value,
+                medicamentos: document.getElementById('c_medicamentos').value,
+                turno: document.getElementById('c_turno').value,
+                dia: document.getElementById('c_dia').value,
+                comentarios: document.getElementById('c_comentarios').value
+            };
+
+            const edad = calcularEdad(datos.fechaNacimiento);
+            if (edad < 18) {
+                alert('Debes ser mayor de 18 años para la consulta de donación.');
+                return;
+            }
+
+            const fechaCita = generarFechaCita();
+            generarPDFConsulta(datos, fechaCita);
+            
+            alert('¡Registro exitoso! Tu consulta médica ha sido agendada.');
+            document.getElementById('formConsulta').reset();
+            closeModal('consulta');
+        }
+
+        function generarPDFDonador(datos, fechaCita) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            if (logoBase64) {
+                try {
+                    doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30);
+                } catch (error) {
+                    dibujarPlaceholderLogo(doc);
+                }
+            } else {
+                dibujarPlaceholderLogo(doc);
+            }
+
+            doc.setFontSize(22);
+            doc.setTextColor(231, 76, 60);
+            doc.text('COMPROBANTE DE CITA', 105, 30, { align: 'center' });
+            doc.setFontSize(18);
+            doc.text('DONACIÓN DE SANGRE', 105, 40, { align: 'center' });
+            doc.setDrawColor(231, 76, 60);
+            doc.setLineWidth(1);
+            doc.line(20, 45, 190, 45);
+
+            // Sección: Fecha y Hora
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+            doc.setFont(undefined, 'bold');
+            doc.text('FECHA Y HORA DE CITA:', 20, 55);
+            doc.setFont(undefined, 'normal');
+            doc.text(fechaCita.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), 20, 61);
+            doc.text('Hora: 09:00 AM', 20, 67);
+            
+            doc.setFont(undefined, 'bold');
+            doc.text('FOLIO:', 140, 55);
+            doc.setFont(undefined, 'normal');
+            doc.text('DON-' + Date.now().toString().slice(-8), 140, 61);
+
+            // Sección: Datos del Donador
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('DATOS DEL DONADOR', 20, 80);
+            doc.setDrawColor(231, 76, 60);
+            doc.line(20, 82, 190, 82);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            let y = 90;
+            doc.text('Nombre completo:', 20, y);
+            doc.text(datos.nombre + ' ' + datos.apellidoP + ' ' + datos.apellidoM, 70, y);
+            y += 6;
+            doc.text('CURP:', 20, y);
+            doc.text(datos.curp, 70, y);
+            y += 6;
+            doc.text('Fecha de nacimiento:', 20, y);
+            doc.text(datos.fechaNacimiento, 70, y);
+            doc.text('Edad:', 130, y);
+            doc.text(calcularEdad(datos.fechaNacimiento) + ' años', 150, y);
+            y += 6;
+            doc.text('Sexo:', 20, y);
+            doc.text(datos.sexo === 'M' ? 'Masculino' : 'Femenino', 70, y);
+            y += 6;
+            doc.text('Tipo de sangre:', 20, y);
+            doc.text(datos.tipoSangre, 70, y);
+            doc.text('Peso:', 130, y);
+            doc.text(datos.peso + ' kg', 150, y);
+            y += 6;
+            doc.text('Teléfono:', 20, y);
+            doc.text(datos.telefono, 70, y);
+            y += 6;
+            doc.text('Email:', 20, y);
+            doc.text(datos.email, 70, y);
+            y += 6;
+            doc.text('Dirección:', 20, y);
+            doc.text(datos.direccion, 70, y);
+            y += 6;
+            doc.text('Municipio/Estado:', 20, y);
+            doc.text(datos.municipio + ', ' + datos.estado, 70, y);
+
+            // Sección: Instrucciones Importantes
+            y += 12;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('INSTRUCCIONES IMPORTANTES', 20, y);
+            doc.setLineWidth(0.5);
+            doc.line(20, y + 2, 190, y + 2);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            y += 8;
+            doc.text('• Presentarse con 8 horas de ayuno (solo puede tomar agua)', 20, y);
+            y += 5;
+            doc.text('• Traer identificación oficial vigente', 20, y);
+            y += 5;
+            doc.text('• Haber dormido al menos 6 horas la noche anterior', 20, y);
+            y += 5;
+            doc.text('• No haber consumido alcohol en las últimas 48 horas', 20, y);
+            y += 5;
+            doc.text('• Estar en buen estado de salud', 20, y);
+            y += 5;
+            doc.text('• Llegar 15 minutos antes de su cita', 20, y);
+
+            // Sección: Ubicación
+            y += 10;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(11);
+            doc.text('UBICACIÓN:', 20, y);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            y += 5;
+            doc.text('Banco de Sangre UNACH', 20, y);
+            y += 4;
+            doc.text('Av. Fray A. Alcalde 10, 44100 Guadalajara, Jal., México', 20, y);
+            y += 4;
+            doc.text('Teléfono: +52-1-33-12345678', 20, y);
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text('Fecha de emisión: ' + new Date().toLocaleString('es-MX'), 105, 280, { align: 'center' });
+            doc.text('Este documento es un comprobante oficial de cita. Favor de presentarlo el día de su donación.', 105, 285, { align: 'center' });
+
+            doc.save('Cita_Donacion_' + datos.apellidoP + '_' + Date.now() + '.pdf');
+        }
+
+        function generarPDFReceptor(datos, fechaCita) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            if (logoBase64) {
+                try {
+                    doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30);
+                } catch (error) {
+                    dibujarPlaceholderLogo(doc);
+                }
+            } else {
+                dibujarPlaceholderLogo(doc);
+            }
+
+            doc.setFontSize(22);
+            doc.setTextColor(231, 76, 60);
+            doc.text('SOLICITUD DE DONACIÓN', 105, 30, { align: 'center' });
+            doc.setFontSize(18);
+            doc.text('SANGRE - RECEPTOR', 105, 40, { align: 'center' });
+            doc.setDrawColor(231, 76, 60);
+            doc.setLineWidth(1);
+            doc.line(20, 45, 190, 45);
+
+            // Sección: Fecha y Folio
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+            doc.setFont(undefined, 'bold');
+            doc.text('FECHA DE SOLICITUD:', 20, 55);
+            doc.setFont(undefined, 'normal');
+            doc.text(new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), 20, 61);
+            
+            doc.setFont(undefined, 'bold');
+            doc.text('FOLIO:', 140, 55);
+            doc.setFont(undefined, 'normal');
+            doc.text('REC-' + Date.now().toString().slice(-8), 140, 61);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('ESTADO:', 140, 67);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(200, 100, 0);
+            doc.text('EN PROCESO', 140, 73);
+            doc.setTextColor(0);
+
+            // Sección: Datos del Paciente
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('DATOS DEL PACIENTE', 20, 85);
+            doc.setDrawColor(231, 76, 60);
+            doc.line(20, 87, 190, 87);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            let y = 95;
+            doc.text('Nombre completo:', 20, y);
+            doc.text(datos.nombre + ' ' + datos.apellidoP + ' ' + datos.apellidoM, 70, y);
+            y += 6;
+            doc.text('CURP / NSS:', 20, y);
+            doc.text(datos.curp, 70, y);
+            y += 6;
+            doc.text('Fecha de nacimiento:', 20, y);
+            doc.text(datos.fechaNacimiento, 70, y);
+            doc.text('Edad:', 130, y);
+            doc.text(calcularEdad(datos.fechaNacimiento) + ' años', 150, y);
+            y += 6;
+            doc.text('Sexo:', 20, y);
+            doc.text(datos.sexo === 'M' ? 'Masculino' : 'Femenino', 70, y);
+            y += 6;
+            doc.text('Teléfono:', 20, y);
+            doc.text(datos.telefono, 70, y);
+            y += 6;
+            doc.text('Email:', 20, y);
+            doc.text(datos.email, 70, y);
+            y += 6;
+            doc.text('Contacto emergencia:', 20, y);
+            doc.text(datos.emergencia, 70, y);
+            y += 6;
+            doc.text('Dirección:', 20, y);
+            doc.text(datos.direccion, 70, y);
+
+            // Sección: Información Médica
+            y += 10;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('INFORMACIÓN MÉDICA', 20, y);
+            doc.setLineWidth(0.5);
+            doc.line(20, y + 2, 190, y + 2);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            y += 8;
+            doc.text('Tipo de sangre requerido:', 20, y);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(231, 76, 60);
+            doc.setFontSize(14);
+            doc.text(datos.tipoSangre, 80, y);
+            doc.setTextColor(0);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            y += 6;
+            doc.text('Unidades solicitadas:', 20, y);
+            doc.setFont(undefined, 'bold');
+            doc.text(datos.unidades + ' unidades', 70, y);
+            doc.setFont(undefined, 'normal');
+            y += 6;
+            doc.text('Diagnóstico:', 20, y);
+            y += 5;
+            const diagnosticoLines = doc.splitTextToSize(datos.diagnostico, 170);
+            doc.text(diagnosticoLines, 20, y);
+            y += (diagnosticoLines.length * 5);
+
+            // Sección: Hospital/Clínica
+            y += 8;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.text('HOSPITAL / CLÍNICA', 20, y);
+            doc.setLineWidth(0.5);
+            doc.line(20, y + 2, 190, y + 2);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            y += 8;
+            doc.text('Institución:', 20, y);
+            doc.text(datos.hospital, 70, y);
+            y += 6;
+            if (datos.medico) {
+                doc.text('Médico responsable:', 20, y);
+                doc.text(datos.medico, 70, y);
+                y += 6;
+            }
+
+            // Sección: Proceso de Solicitud
+            y += 8;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(11);
+            doc.text('PROCESO DE SOLICITUD:', 20, y);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            y += 5;
+            doc.text('• Su solicitud será revisada por nuestro equipo médico en las próximas 24-48 horas', 20, y);
+            y += 5;
+            doc.text('• Recibirá una llamada telefónica para confirmar detalles y coordinar la entrega', 20, y);
+            y += 5;
+            doc.text('• Mantenga disponible su teléfono y revise su correo electrónico', 20, y);
+            y += 5;
+            doc.text('• Para urgencias, comuníquese directamente al: +52-1-33-12345678', 20, y);
+
+            // Sección: Ubicación
+            y += 10;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(11);
+            doc.text('UBICACIÓN:', 20, y);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            y += 5;
+            doc.text('Banco de Sangre UNACH', 20, y);
+            y += 4;
+            doc.text('Av. Fray A. Alcalde 10, 44100 Guadalajara, Jal., México', 20, y);
+            y += 4;
+            doc.text('Teléfono: +52-1-33-12345678 | Email: info@bancosangre.com', 20, y);
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text('Fecha de emisión: ' + new Date().toLocaleString('es-MX'), 105, 280, { align: 'center' });
+            doc.text('Este documento es un comprobante de solicitud. Conserve este folio para seguimiento.', 105, 285, { align: 'center' });
+
+            doc.save('Solicitud_Receptor_' + datos.apellidoP + '_' + Date.now() + '.pdf');
+        }
+
+        function generarPDFConsulta(datos, fechaCita) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            if (logoBase64) {
+                try {
+                    doc.addImage(logoBase64, 'PNG', 15, 10, 30, 30);
+                } catch (error) {
+                    dibujarPlaceholderLogo(doc);
+                }
+            } else {
+                dibujarPlaceholderLogo(doc);
+            }
+
+            doc.setFontSize(20);
+            doc.setTextColor(76, 175, 80);
+            doc.text('CONSULTA MÉDICA', 105, 40, { align: 'center' });
+            doc.text('PRE-DONACIÓN', 105, 50, { align: 'center' });
+            doc.setDrawColor(76, 175, 80);
+            doc.setLineWidth(0.5);
+            doc.line(20, 55, 190, 55);
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            doc.setFont(undefined, 'bold');
+            doc.text('FECHA Y HORA DE CITA:', 20, 70);
+            doc.setFont(undefined, 'normal');
+            doc.text(fechaCita.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), 20, 77);
+            doc.setFont(undefined, 'bold');
+            doc.text('TURNO:', 20, 84);
+            doc.setFont(undefined, 'normal');
+            doc.text(datos.turno, 45, 84);
+            doc.setFont(undefined, 'bold');
+            doc.text('FOLIO:', 140, 70);
+            doc.setFont(undefined, 'normal');
+            doc.text('CON-' + Date.now().toString().slice(-8), 140, 77);
+            doc.setFont(undefined, 'bold');
+            doc.text('DATOS DEL PACIENTE', 20, 100);
+            doc.setDrawColor(76, 175, 80);
+            doc.line(20, 102, 190, 102);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(11);
+            let y = 112;
+            doc.text('Nombre:', 20, y);
+            doc.text(datos.nombre + ' ' + datos.apellidoP + ' ' + datos.apellidoM, 70, y);
+            y += 7;
+            doc.text('Edad:', 20, y);
+            doc.text(calcularEdad(datos.fechaNacimiento).toString() + ' años', 70, y);
+            y += 7;
+            doc.text('Teléfono:', 20, y);
+            doc.text(datos.telefono, 70, y);
+            y += 7;
+            doc.text('Peso: ' + datos.peso + ' kg', 20, y);
+            doc.text('Altura: ' + datos.altura + ' cm', 100, y);
+            y += 15;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(12);
+            doc.setFillColor(232, 245, 233);
+            doc.rect(20, y, 170, 15, 'F');
+            doc.setTextColor(76, 175, 80);
+            doc.text('CONSULTA AGENDADA', 105, y + 10, { align: 'center' });
+            y += 20;
+            doc.setTextColor(0);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text('• Presentarse con ayuno de 8 horas', 20, y);
+            y += 5;
+            doc.text('• Traer identificación oficial', 20, y);
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text('Emisión: ' + new Date().toLocaleString('es-MX'), 105, 280, { align: 'center' });
+            doc.text('Consulta gratuita sin compromiso', 105, 285, { align: 'center' });
+            doc.save('Consulta_' + datos.apellidoP + '_' + Date.now() + '.pdf');
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
